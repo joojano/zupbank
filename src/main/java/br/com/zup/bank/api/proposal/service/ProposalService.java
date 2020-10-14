@@ -1,6 +1,7 @@
 package br.com.zup.bank.api.proposal.service;
 
 import br.com.zup.bank.api.proposal.domain.AbstractProposalOperations;
+import br.com.zup.bank.api.proposal.domain.models.Address;
 import br.com.zup.bank.api.proposal.domain.models.Customer;
 import br.com.zup.bank.api.proposal.domain.models.Proposal;
 import br.com.zup.bank.api.proposal.domain.models.Steps;
@@ -22,6 +23,31 @@ public class ProposalService implements AbstractProposalOperations {
     private final int LEGAL_AGE = 18;
 
     @Override
+    public ResponseEntity insertAddressInfo(String id, Address address) {
+        if (!isCepStringValid(address.getCep())) return Utils.returnBadRequestMessage("CEP is not valid");
+        if (!isProposalExists(id)) return Utils.returnNotFoundMessage();
+        
+        Proposal originalProposal = proposalRepository.findById(id).get();
+                
+        Proposal proposal = Proposal.builder()
+                .id(id)
+                .customer(originalProposal.getCustomer())
+                .address(address)
+                .steps(
+                        Steps.builder()
+                                .isStep1Complete(true)
+                                .isStep2Complete(true)
+                                .isStep3Complete(false)
+                                .isAccepted(false)
+                                .build())
+                .build()
+                ;
+        proposalRepository.save(proposal);
+        
+        return ResponseEntity.created(URI.create("http://localhost:8080/proposal/" + proposal.getId() + "/uploadCPF")).build();
+    }
+    
+    @Override
     public ResponseEntity insertCustomerInfo(Customer customer) {
         if (!isEmailStringValid(customer.getEmail())) return Utils.returnBadRequestMessage("Email is not valid");
         if (!isCpfStringValid(customer.getCpf())) return Utils.returnBadRequestMessage("CPF is not valid");
@@ -41,7 +67,12 @@ public class ProposalService implements AbstractProposalOperations {
                 .build();
         proposalRepository.insert(proposal);
         
-        return ResponseEntity.created(URI.create("http://localhost:8080/address")).build();
+        return ResponseEntity.created(URI.create("http://localhost:8080/proposal/" + proposal.getId() + "/customerAddress")).build();
+    }
+    
+    private boolean isCepStringValid(String cep) {
+        String regex = "^\\d{5}-\\d{3}$";
+        return Utils.isRegexMatch(regex, cep);
     }
     
     private boolean isEmailStringValid(String email){
@@ -74,5 +105,10 @@ public class ProposalService implements AbstractProposalOperations {
     
     private boolean isCpfNotRegistered(String cpf){
         return proposalRepository.findByCpf(cpf).isEmpty();
-    }    
+    }
+
+    private boolean isProposalExists(String id) {
+        return proposalRepository.findById(id).isPresent();
+    }
+
 }

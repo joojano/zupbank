@@ -19,6 +19,10 @@ public class Utils {
         return ResponseEntity.badRequest().body(createMessageBody(message));
     }
     
+    public static ResponseEntity returnNotFoundMessage(){
+        return ResponseEntity.notFound().build();
+    }
+    
     private static Map<String, Object> createMessageBody(String message){
         Map<String, Object> body = new HashMap();
         body.put("message", message);
