@@ -7,6 +7,7 @@ import br.com.zup.bank.api.proposal.domain.models.Customer;
 import br.com.zup.bank.api.proposal.domain.models.Proposal;
 import br.com.zup.bank.api.proposal.domain.models.StatusApprovalEnum;
 import br.com.zup.bank.api.proposal.domain.models.Steps;
+import br.com.zup.bank.api.proposal.domain.models.StepsEnum;
 import br.com.zup.bank.api.proposal.repository.ProposalRepository;
 import br.com.zup.bank.api.utils.Utils;
 import java.io.File;
@@ -25,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 
 @Service
 public class ProposalService implements AbstractProposalOperations {
@@ -34,7 +34,6 @@ public class ProposalService implements AbstractProposalOperations {
     private ProposalRepository proposalRepository;
 
     private final int LEGAL_AGE = 18;
-    private final int STEP3 = 3;
     
     @Value("${CPF_UPLOAD_DIR}")
     private String cpfDirectory;
@@ -76,11 +75,7 @@ public class ProposalService implements AbstractProposalOperations {
                 .id(id)
                 .customer(originalProposal.getCustomer())
                 .address(address)
-                .steps(
-                        Steps.builder()
-                                .isStep1Complete(true)
-                                .isStep2Complete(true)
-                                .build())
+                .steps(setStepCompleted(originalProposal.getSteps(), StepsEnum.STEP2))
                 .build();
         proposalRepository.save(proposal);
 
@@ -107,10 +102,7 @@ public class ProposalService implements AbstractProposalOperations {
 
         Proposal proposal = Proposal.builder()
                 .customer(customer)
-                .steps(
-                        Steps.builder()
-                                .isStep1Complete(true)
-                                .build())
+                .steps(setStepCompleted(new Steps(), StepsEnum.STEP1))
                 .build();
         proposalRepository.insert(proposal);
 
@@ -125,7 +117,7 @@ public class ProposalService implements AbstractProposalOperations {
             
             Proposal originalProposal = proposalRepository.findById(id).get();
             
-            if (!isStepsCompleted(originalProposal.getSteps(), STEP3)) return Utils.returnUnprocessableEntity("A previous step is not complete.");
+            if (!isStepsCompleted(originalProposal.getSteps(), StepsEnum.STEP3)) return Utils.returnUnprocessableEntity("A previous step is not complete.");
             
             String savedPath = saveImageToDisk(originalProposal.getCustomer().getCpf(), cpfDirectory, image);
             if (Objects.isNull(savedPath)) return Utils.returnServerError("There was an error while trying to save the image");
@@ -145,11 +137,7 @@ public class ProposalService implements AbstractProposalOperations {
                                                     .approvalStatus(StatusApprovalEnum.PENDING)
                                                     .pathImage(savedPath).build())
                                     .build())
-                    .steps(
-                            Steps.builder()
-                                    .isStep1Complete(true)
-                                    .isStep2Complete(true)
-                                    .isStep3Complete(true).build()).build();
+                    .steps(setStepCompleted(originalProposal.getSteps(), StepsEnum.STEP3)).build();
             
             proposalRepository.save(proposal);     
             
@@ -213,7 +201,7 @@ public class ProposalService implements AbstractProposalOperations {
                 || contentType.equals("image/heif"));
     }
 
-    private boolean isStepsCompleted(Steps steps, int actualStep) {
+    private boolean isStepsCompleted(Steps steps, StepsEnum actualStep) {
         boolean response = false;
         switch(actualStep) {
             case STEP3:
@@ -223,6 +211,27 @@ public class ProposalService implements AbstractProposalOperations {
                 response = false;
         }
         return response;
+    }
+    
+    private Steps setStepCompleted(Steps step, StepsEnum stepCompleted){
+        switch(stepCompleted){
+            case STEP1:
+                step.setStep1Complete(true);
+                break;
+            case STEP2:
+                step.setStep2Complete(true);
+                break;
+            case STEP3:
+                step.setStep3Complete(true);
+                break;
+            case STEP4_BANK:
+                step.setAcceptedByBank(true);
+                break;
+            case STEP4_CUSTOMER: 
+                step.setAcceptedByCustomer(true);
+                break;
+        }
+        return step;
     }
 
     private String saveImageToDisk(String cpf, String path, MultipartFile file) {

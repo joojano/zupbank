@@ -1,12 +1,12 @@
 
 package br.com.zup.bank.api.proposal.domain.models;
 
-import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.lang.Nullable;
 
-@Builder
 @Getter
+@Setter
 public class Steps {
     @Nullable private boolean isStep1Complete;
     @Nullable private boolean isStep2Complete;
