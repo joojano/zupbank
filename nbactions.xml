@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+        <action>
+            <actionName>run</actionName>
+            <packagings>
+                <packaging>jar</packaging>
+            </packagings>
+            <goals>
+                <goal>process-classes</goal>
+                <goal>org.codehaus.mojo:exec-maven-plugin:1.5.0:exec</goal>
+            </goals>
+            <properties>
+                <exec.args>-classpath %classpath ${packageClassName}</exec.args>
+                <exec.executable>java</exec.executable>
+                <Env.MONGO_HOST>192.168.11.50</Env.MONGO_HOST>
+                <Env.MONGO_PORT>27017</Env.MONGO_PORT>
+                <Env.CPF_UPLOAD_DIR>C:\Users\Juliano\Pictures\Zupbank\cpfImages</Env.CPF_UPLOAD_DIR>
+            </properties>
+        </action>
+    </actions>
