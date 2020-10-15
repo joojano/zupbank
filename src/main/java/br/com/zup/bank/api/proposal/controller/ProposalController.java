@@ -78,4 +78,14 @@ public class ProposalController implements AbstractProposalOperations {
             @Parameter(description = "The CPF image") @RequestParam("file") MultipartFile image) {
         return proposalService.insertCpfFile(id, image);
     }
+
+    @Override
+    public ResponseEntity getProposalInfo(String id) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public ResponseEntity insertProposalAcceptance(String id, boolean isAccepted) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

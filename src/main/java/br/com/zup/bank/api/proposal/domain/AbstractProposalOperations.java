@@ -13,4 +13,6 @@ public interface AbstractProposalOperations {
     public ResponseEntity insertCustomerInfo(Customer customer);
     public ResponseEntity insertAddressInfo(String id, Address address);
     public ResponseEntity insertCpfFile(String id, MultipartFile image);
+    public ResponseEntity getProposalInfo(String id);
+    public ResponseEntity insertProposalAcceptance(String id, boolean isAcceptedByCustomer);
 }

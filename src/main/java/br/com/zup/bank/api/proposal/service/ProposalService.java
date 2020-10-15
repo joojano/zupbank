@@ -57,8 +57,6 @@ public class ProposalService implements AbstractProposalOperations {
                         Steps.builder()
                                 .isStep1Complete(true)
                                 .isStep2Complete(true)
-                                .isStep3Complete(false)
-                                .isAccepted(false)
                                 .build())
                 .build();
         proposalRepository.save(proposal);
@@ -89,9 +87,6 @@ public class ProposalService implements AbstractProposalOperations {
                 .steps(
                         Steps.builder()
                                 .isStep1Complete(true)
-                                .isStep2Complete(false)
-                                .isStep3Complete(false)
-                                .isAccepted(false)
                                 .build())
                 .build();
         proposalRepository.insert(proposal);
@@ -131,8 +126,7 @@ public class ProposalService implements AbstractProposalOperations {
                             Steps.builder()
                                     .isStep1Complete(true)
                                     .isStep2Complete(true)
-                                    .isStep3Complete(true)
-                                    .isAccepted(false).build()).build();
+                                    .isStep3Complete(true).build()).build();
             
             proposalRepository.save(proposal);     
             
@@ -225,5 +219,15 @@ public class ProposalService implements AbstractProposalOperations {
             Logger.getLogger(ProposalService.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
+    }
+
+    @Override
+    public ResponseEntity getProposalInfo(String id) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public ResponseEntity insertProposalAcceptance(String id, boolean isAcceptedByCustomer) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }
