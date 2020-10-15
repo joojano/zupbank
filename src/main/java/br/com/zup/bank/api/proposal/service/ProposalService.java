@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 
 @Service
 public class ProposalService implements AbstractProposalOperations {
@@ -37,6 +38,28 @@ public class ProposalService implements AbstractProposalOperations {
     
     @Value("${CPF_UPLOAD_DIR}")
     private String cpfDirectory;
+    
+    @Override
+    public ResponseEntity getProposalInfo(String id, String type) {
+        if (!isProposalExists(id)) return Utils.returnNotFoundMessage();
+        Proposal proposal = proposalRepository.findById(id).get();
+        if (type.equals("bank")) return ResponseEntity.ok(proposal);
+        if (type.equals("client")){
+            Proposal clientProposal = Proposal.builder()
+                .id(id)
+                .address(proposal.getAddress())
+                .steps(proposal.getSteps())
+                .customer(
+                        Customer.builder()
+                                .name(proposal.getCustomer().getName())
+                                .surname(proposal.getCustomer().getSurname())
+                                .email(proposal.getCustomer().getEmail())
+                                .birthDate(proposal.getCustomer().getBirthDate())
+                                .cpf(proposal.getCustomer().getCpf()).build()).build();
+            return ResponseEntity.ok(clientProposal);
+        }
+        return Utils.returnForbiddenMessage("This token does not have the appropriate roles to see the response");
+    }
 
     @Override
     public ResponseEntity insertAddressInfo(String id, Address address) {
@@ -222,12 +245,7 @@ public class ProposalService implements AbstractProposalOperations {
     }
 
     @Override
-    public ResponseEntity getProposalInfo(String id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public ResponseEntity insertProposalAcceptance(String id, boolean isAcceptedByCustomer) {
+    public ResponseEntity insertProposalAcceptance(String id, boolean isAcceptedByCustomer, String type) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

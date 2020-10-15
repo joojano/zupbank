@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -92,8 +93,9 @@ public class ProposalController implements AbstractProposalOperations {
             path = "/proposal/{id}", 
             produces = "application/json")
     @Override
-    public ResponseEntity getProposalInfo(@Parameter(description = "The Proposal Id") @PathVariable String id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public ResponseEntity getProposalInfo(@Parameter(description = "The Proposal Id") @PathVariable String id, 
+            @Parameter(description = "The user type (test)") @RequestHeader("type") String userType) {
+        return proposalService.getProposalInfo(id, userType);
     }
     
     @Operation(
@@ -110,7 +112,8 @@ public class ProposalController implements AbstractProposalOperations {
             produces = "application/json")
     @Override
     public ResponseEntity insertProposalAcceptance(@Parameter(description = "The Proposal Id") @PathVariable String id, 
-            @Parameter(description = "The acceptance decision") @RequestBody boolean isAccepted) {
+            @Parameter(description = "The acceptance decision") @RequestBody boolean isAccepted, 
+            @Parameter(description = "The user type (test)") @RequestHeader("type") String userType) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

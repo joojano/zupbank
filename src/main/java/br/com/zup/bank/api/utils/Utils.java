@@ -37,4 +37,8 @@ public class Utils {
     public static ResponseEntity returnUnprocessableEntity(String message) {
         return ResponseEntity.unprocessableEntity().body(createMessageBody(message));
     }
+
+    public static ResponseEntity returnForbiddenMessage(String message) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(createMessageBody(message));
+    }
 }
