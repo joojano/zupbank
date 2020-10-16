@@ -30,7 +30,7 @@ public class SpringSecurityKeycloakConfiguration extends KeycloakWebSecurityConf
             .antMatchers("/proposal/customerInfo").hasAnyRole("client-api")
             .antMatchers("/proposal/{id}/customerAddress").hasAnyRole("client-api")
             .antMatchers("/proposal/{id}/uploadCPF").hasAnyRole("client-api")
-            .antMatchers("/proposal/{id}/").hasAnyRole("client-api", "approver")
+            .antMatchers("/proposal/{id}/").authenticated()
             .antMatchers("/proposal/{id}/acceptance").hasAnyRole("client-api", "approver")
             .anyRequest()
             .authenticated();

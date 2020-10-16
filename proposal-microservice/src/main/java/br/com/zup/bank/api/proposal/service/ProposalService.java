@@ -45,7 +45,7 @@ public class ProposalService implements AbstractProposalOperations {
         if (!isProposalExists(id)) return Utils.returnNotFoundMessage();
         Proposal proposal = proposalRepository.findById(id).get();
         if (type.equals("bank")) return ResponseEntity.ok(proposal);
-        if (type.equals("client")){
+        else {
             Proposal clientProposal = Proposal.builder()
                 .id(id)
                 .address(proposal.getAddress())
@@ -59,7 +59,6 @@ public class ProposalService implements AbstractProposalOperations {
                                 .cpf(proposal.getCustomer().getCpf()).build()).build();
             return ResponseEntity.ok(clientProposal);
         }
-        return Utils.returnForbiddenMessage("This token does not have the appropriate roles to see the response");
     }
 
     private String getRequestorRole(Authentication auth) {
