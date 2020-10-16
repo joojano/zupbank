@@ -29,7 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Tag(name = "proposal")
 @RequestMapping("/proposal")
 public class ProposalController implements AbstractProposalOperations {
-    
+        
     @Autowired
     private ProposalService proposalService;
 
@@ -104,9 +104,8 @@ public class ProposalController implements AbstractProposalOperations {
             path = "/{id}", 
             produces = "application/json")
     @Override
-    public ResponseEntity getProposalInfo(@Parameter(description = "The Proposal Id") @PathVariable String id, 
-            @Parameter(description = "The user type (test)") @RequestHeader("type") String userType) {
-        return proposalService.getProposalInfo(id, userType);
+    public ResponseEntity getProposalInfo(@Parameter(description = "The Proposal Id") @PathVariable String id, Authentication auth) {
+        return proposalService.getProposalInfo(id, auth);
     }
     
     @Operation(
@@ -125,8 +124,7 @@ public class ProposalController implements AbstractProposalOperations {
             produces = "application/json")
     @Override
     public ResponseEntity insertProposalAcceptance(@Parameter(description = "The Proposal Id") @PathVariable String id, 
-            @Parameter(description = "The acceptance decision") @RequestBody boolean isAccepted,
-            @Parameter(description = "The user type (test)") @RequestHeader("type") String userType) {
-        return proposalService.insertProposalAcceptance(id, isAccepted, userType);
+            @Parameter(description = "The acceptance decision") @RequestBody boolean isAccepted, Authentication auth) {
+        return proposalService.insertProposalAcceptance(id, isAccepted, auth);
     }
 }

@@ -39,8 +39,9 @@ public class ProposalService implements AbstractProposalOperations {
     private ProposalRepository proposalRepository;
     
     @Override
-    public ResponseEntity getProposalInfo(String id, String type) {
-        
+    public ResponseEntity getProposalInfo(String id, Authentication auth) {
+        String type = getRequestorRole(auth);
+        if (type.equals("MULTIPLE")) return Utils.returnBadRequestMessage("The requesting user token more than one role. Make an request using a token only with one profile.");
         if (!isProposalExists(id)) return Utils.returnNotFoundMessage();
         Proposal proposal = proposalRepository.findById(id).get();
         if (type.equals("bank")) return ResponseEntity.ok(proposal);
@@ -59,6 +60,13 @@ public class ProposalService implements AbstractProposalOperations {
             return ResponseEntity.ok(clientProposal);
         }
         return Utils.returnForbiddenMessage("This token does not have the appropriate roles to see the response");
+    }
+
+    private String getRequestorRole(Authentication auth) {
+        String type = auth.getAuthorities().toString();
+        if(type.contains("client-api") && type.contains("approver")) return "MULTIPLE";
+        if (type.contains("client-api")) return "client";
+        else return "bank";
     }
 
     @Override
@@ -145,7 +153,7 @@ public class ProposalService implements AbstractProposalOperations {
     }
     
     @Override
-    public ResponseEntity insertProposalAcceptance(String id, boolean isAccepted, String type) {
+    public ResponseEntity insertProposalAcceptance(String id, boolean isAccepted, Authentication auth) {
         if (!isProposalExists(id)) {
             return Utils.returnNotFoundMessage();
         }
@@ -155,6 +163,7 @@ public class ProposalService implements AbstractProposalOperations {
         Steps steps = originalProposal.getSteps();
         if (!isStepsCompleted(steps, StepsEnum.STEP4)) return Utils.returnUnprocessableEntity("A previous step is not complete.");
         
+        String type = getRequestorRole(auth);
         if(type.equals("bank")) steps = setStepCompleted(steps, StepsEnum.STEP4_BANK, isAccepted);
         else if(type.equals("customer")) steps = setStepCompleted(steps, StepsEnum.STEP4_CUSTOMER, isAccepted);
         else return Utils.returnForbiddenMessage("This token does not have the appropriate roles to set an acceptance");
