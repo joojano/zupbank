@@ -153,8 +153,8 @@ public class ProposalService implements AbstractProposalOperations {
         Steps steps = originalProposal.getSteps();
         if (!isStepsCompleted(steps, StepsEnum.STEP4)) return Utils.returnUnprocessableEntity("A previous step is not complete.");
         
-        if(type.equals("bank")) steps = setStepCompleted(steps, StepsEnum.STEP4_BANK);
-        else if(type.equals("customer")) steps = setStepCompleted(steps, StepsEnum.STEP4_CUSTOMER);
+        if(type.equals("bank")) steps = setStepCompleted(steps, StepsEnum.STEP4_BANK, isAccepted);
+        else if(type.equals("customer")) steps = setStepCompleted(steps, StepsEnum.STEP4_CUSTOMER, isAccepted);
         else return Utils.returnForbiddenMessage("This token does not have the appropriate roles to set an acceptance");
         
         Proposal proposal = Proposal.builder()
@@ -258,7 +258,7 @@ public class ProposalService implements AbstractProposalOperations {
             return null;
         }
     }
-    private Steps setStepCompleted(Steps step, StepsEnum stepCompleted){
+    private Steps setStepCompleted(Steps step, StepsEnum stepCompleted, boolean isAccepted){
         switch(stepCompleted){
             case STEP1:
                 step.setStep1Complete(true);
@@ -268,14 +268,22 @@ public class ProposalService implements AbstractProposalOperations {
                 break;
             case STEP3:
                 step.setStep3Complete(true);
+                step.setIsAcceptedByBank(StatusApprovalEnum.PENDING);
+                step.setIsAcceptedByCustomer(StatusApprovalEnum.PENDING);
                 break;
             case STEP4_BANK:
-                step.setAcceptedByBank(true);
+                if (isAccepted) step.setIsAcceptedByBank(StatusApprovalEnum.APPROVED);
+                else step.setIsAcceptedByBank(StatusApprovalEnum.REPROVED);
                 break;
             case STEP4_CUSTOMER:
-                step.setAcceptedByCustomer(true);
+                if (isAccepted) step.setIsAcceptedByCustomer(StatusApprovalEnum.APPROVED);
+                else step.setIsAcceptedByCustomer(StatusApprovalEnum.REPROVED);
                 break;
         }
         return step;
+    }
+    
+    private Steps setStepCompleted(Steps step, StepsEnum stepCompleted) {
+        return setStepCompleted(step, stepCompleted, false);
     }
 }
