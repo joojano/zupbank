@@ -112,8 +112,8 @@ public class ProposalController implements AbstractProposalOperations {
             produces = "application/json")
     @Override
     public ResponseEntity insertProposalAcceptance(@Parameter(description = "The Proposal Id") @PathVariable String id, 
-            @Parameter(description = "The acceptance decision") @RequestBody boolean isAccepted, 
+            @Parameter(description = "The acceptance decision") @RequestBody boolean isAccepted,
             @Parameter(description = "The user type (test)") @RequestHeader("type") String userType) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return proposalService.insertProposalAcceptance(id, isAccepted, userType);
     }
 }

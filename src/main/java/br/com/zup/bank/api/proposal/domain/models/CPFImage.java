@@ -1,6 +1,7 @@
 
 package br.com.zup.bank.api.proposal.domain.models;
 
+import br.com.zup.bank.api.proposal.domain.enums.StatusApprovalEnum;
 import java.util.Date;
 import javax.validation.constraints.NotNull;
 import lombok.Builder;
