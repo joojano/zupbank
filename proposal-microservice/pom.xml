@@ -8,11 +8,11 @@
 		<version>2.3.4.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>br.com.zup.bank</groupId>
+	<groupId>br.com.zup.bank.proposal</groupId>
 	<artifactId>api</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>zupbank-api</name>
-	<description>API for ZupBank</description>
+	<version>0.9</version>
+	<name>zupbank-proposal-microservice-api</name>
+	<description>Microservice API for Proposal Endpoints</description>
 
 	<properties>
 		<java.version>1.8</java.version>
