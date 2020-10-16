@@ -13,18 +13,21 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @Tag(name = "proposal")
+@RequestMapping("/proposal")
 public class ProposalController implements AbstractProposalOperations {
     
     @Autowired
@@ -35,11 +38,13 @@ public class ProposalController implements AbstractProposalOperations {
                     + " will be checked. If everything is ok, the registration may proceed")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Operation successful"),
-        @ApiResponse(responseCode = "400", description = "Invalid parameter or already registered", content = @Content(mediaType = "application/json"))
+        @ApiResponse(responseCode = "400", description = "Invalid parameter or already registered", content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "401", description = "Provided token is invalid", content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "403", description = "Provided token is not authorized to access this content", content = @Content(mediaType = "application/json"))
     })
     
     @PostMapping(
-            path = "/proposal/customerInfo", 
+            path = "/customerInfo", 
             consumes = "application/json")
     @Override
     public ResponseEntity insertCustomerInfo(@Parameter(description = "The information of the customer") @RequestBody Customer customer) {
@@ -52,10 +57,12 @@ public class ProposalController implements AbstractProposalOperations {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Operation successful"),
         @ApiResponse(responseCode = "400", description = "Invalid parameter"),
+        @ApiResponse(responseCode = "401", description = "Provided token is invalid", content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "403", description = "Provided token is not authorized to access this content", content = @Content(mediaType = "application/json")),
         @ApiResponse(responseCode = "404", description = "Proposal not completed")
     })
     @PatchMapping(
-            path = "/proposal/{id}/customerAddress", 
+            path = "/{id}/customerAddress", 
             consumes = "application/json")
     @Override
     public ResponseEntity insertAddressInfo(@Parameter(description = "The Proposal ID") @PathVariable String id, 
@@ -70,11 +77,13 @@ public class ProposalController implements AbstractProposalOperations {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Operation successful"),
         @ApiResponse(responseCode = "400", description = "Invalid parameter"),
+        @ApiResponse(responseCode = "401", description = "Provided token is invalid", content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "403", description = "Provided token is not authorized to access this content", content = @Content(mediaType = "application/json")),
         @ApiResponse(responseCode = "404", description = "Proposal not found"),
         @ApiResponse(responseCode = "422", description = "Previous steps not completed")
     })
     @PatchMapping(
-            path = "/proposal/{id}/uploadCPF")
+            path = "/{id}/uploadCPF")
     @Override
     public ResponseEntity insertCpfFile(@Parameter(description = "The Proposal Id") @PathVariable String id, 
             @Parameter(description = "The CPF image") @RequestParam("file") MultipartFile image) {
@@ -87,10 +96,12 @@ public class ProposalController implements AbstractProposalOperations {
                     + "If request token has the role 'zupbank-client', some results will be omitted for security")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Information of customer"),
+        @ApiResponse(responseCode = "401", description = "Provided token is invalid", content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "403", description = "Provided token is not authorized to access this content", content = @Content(mediaType = "application/json")),
         @ApiResponse(responseCode = "404", description = "Proposal not found")
     })
     @GetMapping(
-            path = "/proposal/{id}", 
+            path = "/{id}", 
             produces = "application/json")
     @Override
     public ResponseEntity getProposalInfo(@Parameter(description = "The Proposal Id") @PathVariable String id, 
@@ -104,10 +115,12 @@ public class ProposalController implements AbstractProposalOperations {
                     + "The accpetance will be registered based on token role ('zupbank-client' or 'zupbank-approver')")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Message based on acceptance option"),
+        @ApiResponse(responseCode = "401", description = "Provided token is invalid", content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "403", description = "Provided token is not authorized to access this content", content = @Content(mediaType = "application/json")),
         @ApiResponse(responseCode = "404", description = "Proposal not found"),
         @ApiResponse(responseCode = "422", description = "Previous steps not completed")
     })
-    @PatchMapping(path = "/proposal/{id}/acceptance", 
+    @PatchMapping(path = "/{id}/acceptance", 
             consumes = "application/json", 
             produces = "application/json")
     @Override

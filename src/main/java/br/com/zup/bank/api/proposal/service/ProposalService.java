@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
 
 @Service
 public class ProposalService implements AbstractProposalOperations {
@@ -39,6 +40,7 @@ public class ProposalService implements AbstractProposalOperations {
     
     @Override
     public ResponseEntity getProposalInfo(String id, String type) {
+        
         if (!isProposalExists(id)) return Utils.returnNotFoundMessage();
         Proposal proposal = proposalRepository.findById(id).get();
         if (type.equals("bank")) return ResponseEntity.ok(proposal);
