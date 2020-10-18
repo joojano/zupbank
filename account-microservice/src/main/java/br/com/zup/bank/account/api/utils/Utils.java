@@ -17,6 +17,10 @@ public class Utils {
     public static ResponseEntity returnBadRequestMessage(String message){
         return ResponseEntity.badRequest().body(createMessageBody(message));
     }
+
+    public static ResponseEntity returnConflict(String message) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(createMessageBody(message));
+    }
     
     public static ResponseEntity returnNotFoundMessage(){
         return ResponseEntity.notFound().build();

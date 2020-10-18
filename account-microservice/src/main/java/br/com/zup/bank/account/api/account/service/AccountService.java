@@ -5,11 +5,14 @@ import br.com.zup.bank.account.api.account.domain.AbstractAccountOperations;
 import br.com.zup.bank.account.api.account.domain.models.Account;
 import br.com.zup.bank.account.api.account.domain.models.Proposal;
 import br.com.zup.bank.account.api.account.repository.AccountRepository;
+import br.com.zup.bank.account.api.email.models.EmailInfo;
+import br.com.zup.bank.account.api.email.components.EmailProducer;
 import br.com.zup.bank.account.api.utils.Utils;
 import br.com.zup.bank.api.proposal.domain.enums.StatusApprovalEnum;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.Objects;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -18,7 +21,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -29,8 +31,8 @@ public class AccountService implements AbstractAccountOperations {
     @Value("${proposal.apiKey}")
     private String apiKey;
     
-    @Value("${proposal.refreshKey}")
-    private String refreshKey;
+    //@Value("${proposal.refreshKey}")
+    //private String refreshKey;
     
     @Value("${proposal.getUrl}")
     private String url;
@@ -40,14 +42,17 @@ public class AccountService implements AbstractAccountOperations {
     
     @Value("${token.minutes.duration}")
     private int duration;
-   
-    private final RestTemplate restTemplate;
     
     @Autowired
     private JavaMailSender emailSender;
+    
+    private final RestTemplate restTemplate;
+    
+    private final EmailProducer emailProducer;
 
-    public AccountService(RestTemplateBuilder restTemplateBuilder) {
+    public AccountService(RestTemplateBuilder restTemplateBuilder, EmailProducer emailProducer) {
         this.restTemplate = restTemplateBuilder.build();
+        this.emailProducer = emailProducer;
     }
     
     @Autowired
@@ -55,6 +60,10 @@ public class AccountService implements AbstractAccountOperations {
 
     @Override
     public ResponseEntity createNewAccount(String proposalId) {
+        Optional<Account> accountReturn = accountRepository.findByProposalId(proposalId);
+        
+        if (accountReturn.isPresent()) return Utils.returnConflict("The provided proposal ID already has been converted into account");
+        
         Proposal proposalReturn = getProposalEntity(proposalId);
         if (Objects.isNull(proposalReturn)) return Utils.returnNotFoundMessage();
         
@@ -87,7 +96,18 @@ public class AccountService implements AbstractAccountOperations {
     }
         
     private void sendEmail(Account account, String emailCustomer){
-        SimpleMailMessage message = new SimpleMailMessage();
+        String message = "A sua nova conta da Zupbank foi aprovada e criada! Segue os dados de sua nova conta: \n"
+                + "Código do banco: " + account.getBankNumber() + "\n"
+                        + "Agência: " + account.getAgencyNumber()+ "\n"
+                                + "Número da conta: " + account.getAccountNumber();
+        EmailInfo emailInfo = EmailInfo.builder()
+                .destinatary(emailCustomer)
+                .subject("Sua nova conta da Zupbank foi criada")
+                .message(message).build();
+        
+        emailProducer.sendEmailToProcess(emailInfo);
+        
+        /*SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom("noreply.zupbank@gmail.com");
         message.setTo(emailCustomer);
         message.setSubject("Sua nova conta da Zupbank foi criada!");
@@ -95,7 +115,7 @@ public class AccountService implements AbstractAccountOperations {
                 + "Código do banco: " + account.getBankNumber() + "\n"
                         + "Agência: " + account.getAgencyNumber()+ "\n"
                                 + "Número da conta: " + account.getAccountNumber());
-        emailSender.send(message);
+        emailSender.send(message);*/
     }
     
     private String generateDigits(int len){

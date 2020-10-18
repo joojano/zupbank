@@ -1,5 +1,5 @@
 
-package br.com.zup.bank.account.api.account.domain.models;
+package br.com.zup.bank.account.api.account.domain.models.proposal;
 
 import java.time.LocalDate;
 import javax.validation.constraints.Email;

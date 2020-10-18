@@ -1,5 +1,8 @@
 package br.com.zup.bank.account.api.account.domain.models;
 
+import br.com.zup.bank.account.api.account.domain.models.proposal.Address;
+import br.com.zup.bank.account.api.account.domain.models.proposal.Customer;
+import br.com.zup.bank.account.api.account.domain.models.proposal.Steps;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.data.annotation.Id;

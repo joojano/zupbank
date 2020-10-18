@@ -1,5 +1,5 @@
 
-package br.com.zup.bank.account.api.account.domain.models;
+package br.com.zup.bank.account.api.account.domain.models.proposal;
 
 import lombok.Builder;
 import lombok.Getter;
