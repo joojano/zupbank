@@ -91,7 +91,7 @@ public class ProposalController implements AbstractProposalOperations {
     
     @Operation(
             summary = "Get a proposal", 
-            description = "This endpoint will return an proposal based on the ID provided. "
+            description = "This endpoint will return an proposal based on params provided. "
                     + "If request token has the role 'zupbank-client', some results will be omitted for security")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Information of customer"),
@@ -99,12 +99,14 @@ public class ProposalController implements AbstractProposalOperations {
         @ApiResponse(responseCode = "403", description = "Provided token is not authorized to access this content", content = @Content(mediaType = "application/json")),
         @ApiResponse(responseCode = "404", description = "Proposal not found")
     })
-    @GetMapping(
-            path = "/{id}", 
+    @GetMapping( 
             produces = "application/json")
     @Override
-    public ResponseEntity getProposalInfo(@Parameter(description = "The Proposal Id") @PathVariable String id, Authentication auth) {
-        return proposalService.getProposalInfo(id, auth);
+    public ResponseEntity getProposalInfo(@Parameter(description = "The Proposal Id") @RequestParam(required = false) String id,
+            @RequestParam(required = false) String cpf,
+            @RequestParam(required = false) String email,
+            Authentication auth) {
+        return proposalService.getProposalInfo(id, cpf, email, auth);
     }
     
     @Operation(

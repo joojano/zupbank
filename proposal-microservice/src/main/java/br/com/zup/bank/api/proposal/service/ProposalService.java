@@ -17,6 +17,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
@@ -39,11 +40,21 @@ public class ProposalService implements AbstractProposalOperations {
     private ProposalRepository proposalRepository;
     
     @Override
-    public ResponseEntity getProposalInfo(String id, Authentication auth) {
+    public ResponseEntity getProposalInfo(String id, String cpf, String email, Authentication auth) {
         String type = getRequestorRole(auth);
-        if (type.equals("MULTIPLE")) return Utils.returnBadRequestMessage("The requesting user token more than one role. Make an request using a token only with one profile.");
-        if (!isProposalExists(id)) return Utils.returnNotFoundMessage();
-        Proposal proposal = proposalRepository.findById(id).get();
+        if (type.equals("MULTIPLE")) return Utils.returnBadRequestMessage("The requesting user token has more than one role. Make an request using a token only with one profile.");
+        if (Objects.nonNull(id) && Objects.nonNull(cpf) && Objects.nonNull(email)) return Utils.returnBadRequestMessage("This endpoint accepts only id or email+cpf. Please resend the request using only id or email+cpf");
+        Proposal proposal = null;
+        if (Objects.nonNull(id)){
+            Optional<Proposal> proposalResponse = proposalRepository.findById(id);
+            if (!proposalResponse.isPresent()) return Utils.returnNotFoundMessage();
+            proposal = proposalResponse.get();
+        }
+        else {
+            Optional<Proposal> proposalResponse = proposalRepository.findByEmailAndCpf(email, cpf); 
+            if (!proposalResponse.isPresent()) return Utils.returnNotFoundMessage();
+            proposal = proposalResponse.get();
+        }
         if (type.equals("bank")) return ResponseEntity.ok(proposal);
         else {
             Proposal clientProposal = Proposal.builder()

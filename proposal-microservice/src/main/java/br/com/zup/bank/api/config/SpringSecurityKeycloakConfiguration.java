@@ -32,6 +32,8 @@ public class SpringSecurityKeycloakConfiguration extends KeycloakWebSecurityConf
             .antMatchers("/proposal/{id}/uploadCPF").hasAnyRole("client-api")
             .antMatchers("/proposal/{id}/").authenticated()
             .antMatchers("/proposal/{id}/acceptance").hasAnyRole("client-api", "approver")
+            .antMatchers("/proposal/").hasAnyRole("client-api")
+            .antMatchers("/api-docs").hasAnyRole("client-api")
             .anyRequest()
             .authenticated();
         http.csrf().disable();
