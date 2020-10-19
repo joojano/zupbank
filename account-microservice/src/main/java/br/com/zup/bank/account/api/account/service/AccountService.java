@@ -105,11 +105,6 @@ public class AccountService implements AbstractAccountOperations {
         return null;
     }
 
-    @Override
-    public ResponseEntity getTransfer(GetTransferModel transferModel) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
     public void processTransfer(Transfer transfer) {
         if (transferRepository.findSameTransferByBank(transfer.getBankOrigin(), transfer.getUniqueCodeOrigin()).isPresent()) {
             log.info("[TRANSFER][ALREADY_EXISTS]: Transferência com código " 
