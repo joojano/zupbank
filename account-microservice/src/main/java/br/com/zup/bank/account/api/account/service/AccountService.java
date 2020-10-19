@@ -3,16 +3,22 @@ package br.com.zup.bank.account.api.account.service;
 
 import br.com.zup.bank.account.api.account.domain.AbstractAccountOperations;
 import br.com.zup.bank.account.api.account.domain.models.Account;
-import br.com.zup.bank.account.api.account.domain.models.Proposal;
+import br.com.zup.bank.account.api.account.domain.models.transfer.GetTransferModel;
+import br.com.zup.bank.account.api.account.domain.models.proposal.Proposal;
+import br.com.zup.bank.account.api.account.domain.models.transfer.Transfer;
 import br.com.zup.bank.account.api.account.repository.AccountRepository;
-import br.com.zup.bank.account.api.email.models.EmailInfo;
-import br.com.zup.bank.account.api.email.components.EmailProducer;
+import br.com.zup.bank.account.api.account.repository.TransferRepository;
+import br.com.zup.bank.account.api.kafka.models.EmailInfo;
+import br.com.zup.bank.account.api.kafka.components.KafkaProducer;
 import br.com.zup.bank.account.api.utils.Utils;
 import br.com.zup.bank.api.proposal.domain.enums.StatusApprovalEnum;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -26,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 @Service
+@Slf4j
 public class AccountService implements AbstractAccountOperations {
     
     @Value("${proposal.apiKey}")
@@ -48,15 +55,18 @@ public class AccountService implements AbstractAccountOperations {
     
     private final RestTemplate restTemplate;
     
-    private final EmailProducer emailProducer;
+    private final KafkaProducer kafkaProducer;
 
-    public AccountService(RestTemplateBuilder restTemplateBuilder, EmailProducer emailProducer) {
+    public AccountService(RestTemplateBuilder restTemplateBuilder, KafkaProducer emailProducer) {
         this.restTemplate = restTemplateBuilder.build();
-        this.emailProducer = emailProducer;
+        this.kafkaProducer = emailProducer;
     }
     
     @Autowired
     private AccountRepository accountRepository;
+    
+    @Autowired
+    private TransferRepository transferRepository;
 
     @Override
     public ResponseEntity createNewAccount(String proposalId) {
@@ -94,6 +104,50 @@ public class AccountService implements AbstractAccountOperations {
         if (response.getStatusCode() == HttpStatus.OK) return response.getBody();
         return null;
     }
+
+    @Override
+    public ResponseEntity getTransfer(GetTransferModel transferModel) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public void processTransfer(Transfer transfer) {
+        if (transferRepository.findSameTransferByBank(transfer.getBankOrigin(), transfer.getUniqueCodeOrigin()).isPresent()) {
+            log.info("[TRANSFER][ALREADY_EXISTS]: Transferência com código " 
+                    + transfer.getUniqueCodeOrigin() + " do banco " 
+                    + transfer.getBankOrigin() + " já existente no banco de dados. Ignorando transferência.");
+            return;
+        }
+        Optional<Account> accountResponse = accountRepository.findAccountByAgencyAndNumber(transfer.getAgencyDestiny(), transfer.getAccountDestiny());
+        if (!accountResponse.isPresent()) {
+            log.info("[TRANSFER][NOT_FOUND] Transferência com código " + transfer.getUniqueCodeOrigin() + " do banco " 
+                    + transfer.getBankOrigin() + " solicita transferência a agência/conta não existentes."
+                            + " Dados: Conta: " + transfer.getAccountDestiny()
+                            + " Agência: " + transfer.getAgencyDestiny());
+            return;
+        }
+        Account account = accountResponse.get();
+        BigDecimal oldBalance = account.getBalance();
+        BigDecimal newBalance = account.getBalance().add(transfer.getAmmount());
+        account.setBalance(newBalance);
+        
+        transferRepository.insert(transfer);
+        accountRepository.save(account);
+        log.info("[TRANSFER][SUCCESS] Transferência com código " + transfer.getUniqueCodeOrigin() + " do banco " 
+                    + transfer.getBankOrigin() + " foi efetuada com sucesso."
+                            + "\nDados: Conta: " + transfer.getAccountDestiny()
+                            + "\nAgência: " + transfer.getAgencyDestiny() 
+                            + "\nBalanço anterior: " + oldBalance.toPlainString()
+                            + "\nBalanço atualizado: " + newBalance.toPlainString());
+    }
+
+    @Override
+    public ResponseEntity receiveTransfers(ArrayList<Transfer> transferInfo) {
+        //ArrayList<Transfer> transfers = new ArrayList<Transfer>(transferInfo);
+        for (Transfer transfer : transferInfo) {
+            kafkaProducer.sendTransferToProcess(transfer);
+        }
+        return ResponseEntity.ok().build();
+    }
         
     private void sendEmail(Account account, String emailCustomer){
         String message = "A sua nova conta da Zupbank foi aprovada e criada! Segue os dados de sua nova conta: \n"
@@ -105,17 +159,7 @@ public class AccountService implements AbstractAccountOperations {
                 .subject("Sua nova conta da Zupbank foi criada")
                 .message(message).build();
         
-        emailProducer.sendEmailToProcess(emailInfo);
-        
-        /*SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("noreply.zupbank@gmail.com");
-        message.setTo(emailCustomer);
-        message.setSubject("Sua nova conta da Zupbank foi criada!");
-        message.setText("A sua nova conta da Zupbank foi aprovada e criada! Segue os dados de sua nova conta: \n"
-                + "Código do banco: " + account.getBankNumber() + "\n"
-                        + "Agência: " + account.getAgencyNumber()+ "\n"
-                                + "Número da conta: " + account.getAccountNumber());
-        emailSender.send(message);*/
+        kafkaProducer.sendEmailToProcess(emailInfo);
     }
     
     private String generateDigits(int len){

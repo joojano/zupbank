@@ -1,7 +1,7 @@
 
-package br.com.zup.bank.account.api.email.configs;
+package br.com.zup.bank.account.api.kafka.configs;
 
-import br.com.zup.bank.account.api.email.models.EmailInfo;
+import br.com.zup.bank.account.api.kafka.models.EmailInfo;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.kafka.clients.producer.ProducerConfig;

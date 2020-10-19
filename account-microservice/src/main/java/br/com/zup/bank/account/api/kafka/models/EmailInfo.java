@@ -1,5 +1,5 @@
 
-package br.com.zup.bank.account.api.email.models;
+package br.com.zup.bank.account.api.kafka.models;
 
 import lombok.Builder;
 import lombok.Getter;

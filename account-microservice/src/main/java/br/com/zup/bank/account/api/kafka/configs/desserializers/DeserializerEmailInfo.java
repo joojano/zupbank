@@ -1,7 +1,7 @@
 
-package br.com.zup.bank.account.api.email.configs.desserializers;
+package br.com.zup.bank.account.api.kafka.configs.desserializers;
 
-import br.com.zup.bank.account.api.email.models.EmailInfo;
+import br.com.zup.bank.account.api.kafka.models.EmailInfo;
 import org.json.JSONObject;
 
 public class DeserializerEmailInfo {

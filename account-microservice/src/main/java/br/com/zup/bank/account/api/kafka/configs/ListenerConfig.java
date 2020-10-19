@@ -1,5 +1,5 @@
 
-package br.com.zup.bank.account.api.email.configs;
+package br.com.zup.bank.account.api.kafka.configs;
 
 import java.util.HashMap;
 import java.util.Map;

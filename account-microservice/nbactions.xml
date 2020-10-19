@@ -22,6 +22,7 @@
                 <Env.KAFKA_BOOTSTRAP_SERVERS>broker:29092,localhost:9092</Env.KAFKA_BOOTSTRAP_SERVERS>
                 <Env.KAFKA_CONSUMER_GROUP>account_api</Env.KAFKA_CONSUMER_GROUP>
                 <Env.EMAIL_TOPIC>email_pending</Env.EMAIL_TOPIC>
+                <Env.TRANSFER_TOPIC>transfer_pending</Env.TRANSFER_TOPIC>
                 
             </properties>
         </action>
@@ -48,6 +49,7 @@
                 <Env.KAFKA_BOOTSTRAP_SERVERS>broker:29092,localhost:9092</Env.KAFKA_BOOTSTRAP_SERVERS>
                 <Env.KAFKA_CONSUMER_GROUP>account_api</Env.KAFKA_CONSUMER_GROUP>
                 <Env.EMAIL_TOPIC>email_pending</Env.EMAIL_TOPIC>
+                <Env.TRANSFER_TOPIC>transfer_pending</Env.TRANSFER_TOPIC>
                 
                 <Env.TOKEN_DURATION_MINUTES>1440</Env.TOKEN_DURATION_MINUTES>
             </properties>

@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import javax.validation.constraints.Null;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.lang.NonNull;
@@ -18,6 +19,6 @@ public class Account {
     @NonNull private String bankNumber;
     @Null private String password;
     @Null private Token token;
-    @NonNull private BigDecimal balance;
+    @NonNull @Setter private BigDecimal balance;
     @NonNull @Indexed(unique = true) private String proposalId;
 }

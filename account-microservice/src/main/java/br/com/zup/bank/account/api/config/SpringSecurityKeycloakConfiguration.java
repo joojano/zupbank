@@ -28,6 +28,7 @@ public class SpringSecurityKeycloakConfiguration extends KeycloakWebSecurityConf
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.authorizeRequests()
             .antMatchers("/account").hasAnyRole("account-api")
+            .antMatchers("/account/transfer/in").hasAnyRole("account-api")
             .anyRequest()
             .authenticated();
         http.csrf().disable();

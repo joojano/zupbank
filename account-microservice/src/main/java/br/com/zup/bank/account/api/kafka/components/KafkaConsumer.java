@@ -1,7 +1,10 @@
-package br.com.zup.bank.account.api.email.components;
+package br.com.zup.bank.account.api.kafka.components;
 
-import br.com.zup.bank.account.api.email.configs.desserializers.DeserializerEmailInfo;
-import br.com.zup.bank.account.api.email.models.EmailInfo;
+import br.com.zup.bank.account.api.account.domain.models.transfer.Transfer;
+import br.com.zup.bank.account.api.account.service.AccountService;
+import br.com.zup.bank.account.api.kafka.configs.desserializers.DeserializerEmailInfo;
+import br.com.zup.bank.account.api.kafka.configs.desserializers.DeserializerTransfer;
+import br.com.zup.bank.account.api.kafka.models.EmailInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,13 +15,16 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-public class EmailSender {
+public class KafkaConsumer {
 
     @Autowired
     private JavaMailSender emailSender;
     
+    @Autowired
+    private AccountService accountService;
+    
     @KafkaListener(topics = "email_pending", groupId = "consumer_email_pending")
-    public void consumeAndSend(ConsumerRecord consumerRecord) {
+    public void consumeEmailAndSend(ConsumerRecord consumerRecord) {
         String json = consumerRecord.value().toString();
         EmailInfo emailInfo = new DeserializerEmailInfo().deserialize(json);
         
@@ -29,5 +35,12 @@ public class EmailSender {
         message.setText(emailInfo.getMessage());
         emailSender.send(message);
         log.info("[EMAIL] - Action: New account created. Destinatary: " + emailInfo.getDestinatary());
+    }
+    
+    @KafkaListener(topics = "transfer_pending", groupId = "consumer_transfer_pending")
+    public void consumeTransferAndCommit(ConsumerRecord consumerRecord) {
+        String json = consumerRecord.value().toString();
+        Transfer transfer = new DeserializerTransfer().deserialize(json);
+        accountService.processTransfer(transfer);        
     }
 }
