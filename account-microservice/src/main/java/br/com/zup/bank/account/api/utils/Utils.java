@@ -1,10 +1,10 @@
 
 package br.com.zup.bank.account.api.utils;
 
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -14,6 +14,12 @@ public class Utils {
         Map<String, Object> body = new HashMap();
         body.put("message", message);
         return body;
+    }
+    
+    public static boolean isRegexMatch(String regex, String wordToBeMatched){
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(wordToBeMatched);
+        return matcher.matches();
     }
     
     public static ResponseEntity returnBadRequestMessage(String message){

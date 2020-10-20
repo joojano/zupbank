@@ -3,6 +3,7 @@ package br.com.zup.bank.account.api.account.service;
 import br.com.zup.bank.account.api.account.domain.AbstractAccountOperations;
 import br.com.zup.bank.account.api.account.domain.models.Account;
 import br.com.zup.bank.account.api.account.domain.models.FirstAccessModel;
+import br.com.zup.bank.account.api.account.domain.models.FirstPasswordModel;
 import br.com.zup.bank.account.api.account.domain.models.Token;
 import br.com.zup.bank.account.api.account.domain.models.proposal.Proposal;
 import br.com.zup.bank.account.api.account.domain.models.transfer.Transfer;
@@ -20,6 +21,7 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -72,6 +74,40 @@ public class AccountService implements AbstractAccountOperations {
 
     private long calculateTokenInvalidAfter(int duration) {
         return new Date(Calendar.getInstance().getTimeInMillis() + (duration * ONE_MINUTE_IN_MILLIS)).getTime();
+    }
+
+    private boolean checkPassword(String password) {
+        return Utils.isRegexMatch("(^\\d{8}$)", password);
+    }
+
+    @Override
+    public ResponseEntity createFirstPassword(FirstPasswordModel firstPasswordModel) {
+        Optional<Account> accountReturn = accountRepository.findAccountByToken(firstPasswordModel.getToken());
+        if (!accountReturn.isPresent()) return Utils.returnNotFoundMessage();
+        if (accountReturn.get().getToken().getInvalidAfter() < Calendar.getInstance().getTimeInMillis()) return Utils.returnBadRequestMessage("Token expired.");
+        if (accountReturn.get().getToken().isTokenUsed()) return Utils.returnBadRequestMessage("Token already used.");
+        if (!checkPassword(firstPasswordModel.getPassword())) return Utils.returnBadRequestMessage("Password must contain 8 digits");
+        Token token = Token.builder()
+                .minutesTokenDuration(accountReturn.get().getToken().getMinutesTokenDuration())
+                .createdAt(accountReturn.get().getToken().getCreatedAt())
+                .invalidAfter(accountReturn.get().getToken().getInvalidAfter())
+                .isTokenUsed(true)
+                .token(accountReturn.get().getToken().getToken())
+                .build();
+        Account account = Account.builder()
+                .id(accountReturn.get().getId())
+                .agencyNumber(accountReturn.get().getAgencyNumber())
+                .accountNumber(accountReturn.get().getAccountNumber())
+                .bankNumber(accountReturn.get().getBankNumber())
+                .password(DigestUtils.sha1Hex(firstPasswordModel.getPassword()))
+                .token(token)
+                .balance(accountReturn.get().getBalance())
+                .proposalId(accountReturn.get().getProposalId())
+                .build();
+        accountRepository.save(account);
+        Proposal proposal = getProposalEntityById(account.getProposalId());
+        sendUpdatedPassword(proposal);
+        return ResponseEntity.ok().build();
     }
 
     @Override
@@ -231,6 +267,16 @@ public class AccountService implements AbstractAccountOperations {
         EmailInfo emailInfo = EmailInfo.builder()
                 .destinatary(email)
                 .subject("Seu token para primeiro acesso a sua conta")
+                .message(message).build();
+        
+        kafkaProducer.sendEmailToProcess(emailInfo);
+    }
+
+    private void sendUpdatedPassword(Proposal proposal) {
+        String message = "A senha da sua conta foi modificada. Caso não foi você, entre em contato com o nosso suporte ao cliente.";
+        EmailInfo emailInfo = EmailInfo.builder()
+                .destinatary(proposal.getCustomer().getEmail())
+                .subject("Sua senha foi modificada")
                 .message(message).build();
         
         kafkaProducer.sendEmailToProcess(emailInfo);

@@ -13,5 +13,8 @@ public interface AccountRepository extends MongoRepository<Account, String>{
     
     @Query("{ 'agencyNumber' : ?0, 'accountNumber' : ?1 }")
     public Optional<Account> findAccountByAgencyAndNumber(String agencyNumber, String accountNumber);
+    
+    @Query("{ 'token.token' : ?0 }")
+    public Optional<Account> findAccountByToken(String token);
 
 }

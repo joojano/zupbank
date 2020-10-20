@@ -3,6 +3,7 @@ package br.com.zup.bank.account.api.account.controller;
 
 import br.com.zup.bank.account.api.account.domain.AbstractAccountOperations;
 import br.com.zup.bank.account.api.account.domain.models.FirstAccessModel;
+import br.com.zup.bank.account.api.account.domain.models.FirstPasswordModel;
 import br.com.zup.bank.account.api.account.domain.models.transfer.Transfer;
 import br.com.zup.bank.account.api.account.service.AccountService;
 import java.util.ArrayList;
@@ -18,6 +19,12 @@ public class AccountController implements AbstractAccountOperations {
     
     @Autowired
     private AccountService accountService;
+
+    @PostMapping(path = "/account/firstPassword")
+    @Override
+    public ResponseEntity createFirstPassword(@RequestBody FirstPasswordModel firstPasswordModel) {
+        return accountService.createFirstPassword(firstPasswordModel);
+    }
 
     @PostMapping(path = "/account", consumes = "application/json")
     @Override
@@ -36,6 +43,5 @@ public class AccountController implements AbstractAccountOperations {
     public ResponseEntity receiveTransfers(@RequestBody ArrayList<Transfer> transferInfo) {
         return accountService.receiveTransfers(transferInfo);
     }
-
     
 }
