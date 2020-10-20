@@ -6,9 +6,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
+import org.springframework.retry.annotation.EnableRetry;
 
 @SpringBootApplication
 @EnableMongoRepositories
+@EnableRetry
 @OpenAPIDefinition(
         tags = {
             @Tag(name = "proposal", description = "Proposal endpoints")

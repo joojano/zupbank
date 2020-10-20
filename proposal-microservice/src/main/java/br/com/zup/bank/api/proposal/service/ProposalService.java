@@ -16,6 +16,8 @@ import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,7 +30,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.client.RestTemplate;
 
 @Service
 public class ProposalService implements AbstractProposalOperations {
@@ -37,8 +44,32 @@ public class ProposalService implements AbstractProposalOperations {
     
     @Value("${CPF_UPLOAD_DIR}")
     private String cpfDirectory;
+    
+    @Value("${account.apiKey}")
+    private String accountApiKey;
+    
+    @Value("${account.url}")
+    private String accountUrl;
+    
     @Autowired
     private ProposalRepository proposalRepository;
+    
+    private final RestTemplate restTemplate;
+
+    public ProposalService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+    
+    @Retryable(maxAttempts = 2)
+    private void createAccount(Proposal proposal) {
+        String urlPostAccount = accountUrl.concat("/account");
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accountApiKey);
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("proposalId", proposal.getId());  
+        HttpEntity<Map<String, String>> entity = new HttpEntity<>(map, headers); 
+        this.restTemplate.postForEntity(urlPostAccount, entity, Object.class);
+    }
     
     @Override
     public ResponseEntity getProposalInfo(String id, String cpf, String email, Authentication auth) {
@@ -188,6 +219,11 @@ public class ProposalService implements AbstractProposalOperations {
                 .build();
         
         proposalRepository.save(proposal);
+        
+        if (steps.getIsAcceptedByBank() == StatusApprovalEnum.APPROVED && steps.getIsAcceptedByCustomer() == StatusApprovalEnum.APPROVED) {
+            createAccount(proposal);
+        }
+        
         return ResponseEntity.ok().build();
     }
     

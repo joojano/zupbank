@@ -31,6 +31,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -173,7 +174,8 @@ public class AccountService implements AbstractAccountOperations {
 
         return ResponseEntity.ok().build();
     }
-
+    
+    @Retryable(maxAttempts = 2)
     private Proposal getProposalEntityByEmailAndCpf(String email, String cpf) {
         String urlGetProposal = url.concat("?email=").concat(email).concat("&cpf=").concat(cpf);
         HttpHeaders headers = new HttpHeaders();
@@ -187,6 +189,7 @@ public class AccountService implements AbstractAccountOperations {
         return null;
     }
 
+    @Retryable(maxAttempts = 2)
     private Proposal getProposalEntityById(String proposalId) {
         String urlGetProposal = url.concat("?id=").concat(proposalId);
         HttpHeaders headers = new HttpHeaders();
@@ -199,7 +202,8 @@ public class AccountService implements AbstractAccountOperations {
         }
         return null;
     }
-
+    
+    
     public void processTransfer(Transfer transfer) {
         if (transferRepository.findSameTransferByBank(transfer.getBankOrigin(), transfer.getUniqueCodeOrigin()).isPresent()) {
             log.info("[TRANSFER][ALREADY_EXISTS]: Transferência com código "
@@ -237,7 +241,8 @@ public class AccountService implements AbstractAccountOperations {
         }
         return ResponseEntity.ok().build();
     }
-
+    
+    @Retryable(maxAttempts = 2)
     private void sendCreatedAccountEmail(Account account, String emailCustomer) {
         String message = "A sua nova conta da Zupbank foi aprovada e criada! Segue os dados de sua nova conta: \n"
                 + "Código do banco: " + account.getBankNumber() + "\n"
@@ -250,7 +255,8 @@ public class AccountService implements AbstractAccountOperations {
 
         kafkaProducer.sendEmailToProcess(emailInfo);
     }
-
+    
+    @Retryable(maxAttempts = 2)
     private String generateDigits(int len) {
         SecureRandom sr = new SecureRandom();
         String result = (sr.nextInt(9) + 1) + "";
@@ -260,7 +266,8 @@ public class AccountService implements AbstractAccountOperations {
         result += (sr.nextInt(9) + 1);
         return result;
     }
-
+    
+    @Retryable(maxAttempts = 2)
     private void sendCreatedTokenEmail(Token token, String email) {
         String message = "Foi solicitado um token para realizar o primeiro acesso a sua conta. "
                 + "\nUse o seguinte token para criar a primeira senha de acesso a sua conta: " + token.getToken();
@@ -271,7 +278,8 @@ public class AccountService implements AbstractAccountOperations {
         
         kafkaProducer.sendEmailToProcess(emailInfo);
     }
-
+    
+    @Retryable(maxAttempts = 2)
     private void sendUpdatedPassword(Proposal proposal) {
         String message = "A senha da sua conta foi modificada. Caso não foi você, entre em contato com o nosso suporte ao cliente.";
         EmailInfo emailInfo = EmailInfo.builder()
