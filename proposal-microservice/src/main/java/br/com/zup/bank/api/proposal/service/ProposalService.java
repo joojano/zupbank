@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
@@ -58,7 +59,7 @@ public class ProposalService implements AbstractProposalOperations {
         if (type.equals("bank")) return ResponseEntity.ok(proposal);
         else {
             Proposal clientProposal = Proposal.builder()
-                .id(id)
+                .id(proposal.getId())
                 .address(proposal.getAddress())
                 .steps(proposal.getSteps())
                 .customer(
@@ -154,6 +155,7 @@ public class ProposalService implements AbstractProposalOperations {
         }
 
         Proposal proposal = Proposal.builder()
+                .id(UUID.randomUUID().toString())
                 .customer(customer)
                 .steps(setStepCompleted(new Steps(), StepsEnum.STEP1))
                 .build();

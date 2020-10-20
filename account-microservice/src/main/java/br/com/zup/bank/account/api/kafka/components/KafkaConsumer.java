@@ -34,13 +34,13 @@ public class KafkaConsumer {
         message.setSubject(emailInfo.getSubject());
         message.setText(emailInfo.getMessage());
         emailSender.send(message);
-        log.info("[EMAIL] - Action: New account created. Destinatary: " + emailInfo.getDestinatary());
+        log.info("[EMAIL] New email with subject " + emailInfo.getSubject() + " sent to: " + emailInfo.getDestinatary());
     }
     
     @KafkaListener(topics = "transfer_pending", groupId = "consumer_transfer_pending")
     public void consumeTransferAndCommit(ConsumerRecord consumerRecord) {
         String json = consumerRecord.value().toString();
         Transfer transfer = new DeserializerTransfer().deserialize(json);
-        accountService.processTransfer(transfer);        
+        accountService.processTransfer(transfer);
     }
 }

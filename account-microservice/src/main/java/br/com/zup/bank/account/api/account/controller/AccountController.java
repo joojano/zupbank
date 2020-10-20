@@ -2,6 +2,7 @@
 package br.com.zup.bank.account.api.account.controller;
 
 import br.com.zup.bank.account.api.account.domain.AbstractAccountOperations;
+import br.com.zup.bank.account.api.account.domain.models.FirstAccessModel;
 import br.com.zup.bank.account.api.account.domain.models.transfer.Transfer;
 import br.com.zup.bank.account.api.account.service.AccountService;
 import java.util.ArrayList;
@@ -22,6 +23,12 @@ public class AccountController implements AbstractAccountOperations {
     @Override
     public ResponseEntity createNewAccount(@RequestParam(name = "proposalId") String proposalId) {
         return accountService.createNewAccount(proposalId);
+    }
+
+    @PostMapping(path = "/account/firstAccess")
+    @Override
+    public ResponseEntity firstAccess(@RequestBody FirstAccessModel firstAccessModel) {
+        return accountService.firstAccess(firstAccessModel);
     }
     
     @PostMapping(path = "/account/transfer/in", consumes = "application/json")

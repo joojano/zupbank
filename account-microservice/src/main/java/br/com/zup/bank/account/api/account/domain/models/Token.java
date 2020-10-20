@@ -10,8 +10,10 @@ import org.springframework.lang.Nullable;
 @Builder
 @Getter
 public class Token {
-    private int minutesTokenDuration;
-    @NonNull private Date createdAt;
-    @NonNull private Date invalidAfter;
-    @Nullable private int token;
+    @NonNull private int minutesTokenDuration;
+    @NonNull private long createdAt;
+    @NonNull private long invalidAfter;
+    @NonNull private boolean isTokenUsed;
+    @Nullable private String token;
+    
 }
